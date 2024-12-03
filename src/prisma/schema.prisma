@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ROLE {
+  user
+  modo
+  admin
+}
+
+enum CATEGORY {
+  histoire
+  religion
+  philosophie
+  spiritualite
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  password     String
+  pseudo       String   @unique
+  avatar       String   @default("https://vibz.s3.eu-central-1.amazonaws.com/logo/photoProfil.png")
+  role         ROLE     @default(user)
+  idInvitation String   @unique
+  createdAt    DateTime @default(now())
+
+  Conversation Conversation[]
+
+  Message Message[]
+
+  AddUserToConversation AddUserToConversation[]
+}
+
+model Book {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  title      String
+  url        String   @unique
+  author     String
+  uploadedAt DateTime @default(now())
+  category   Category @relation(fields: [categoryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  categoryId String   @db.ObjectId // Référence à la catégorie
+}
+
+model Category {
+  id    String   @id @default(auto()) @map("_id") @db.ObjectId
+  type  CATEGORY @unique
+  books Book[] // Relation avec les livres
+}
+
+model Conversation {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  author_id    String   @db.ObjectId
+  author       User     @relation(fields: [author_id], references: [id],onDelete: Cascade, onUpdate: Cascade)
+
+  Message Message[]
+  AddUserToConverstion AddUserToConversation[]
+}
+
+model AddUserToConversation {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @default(now())
+  conversation_id String       @db.ObjectId
+  conversation    Conversation @relation(fields: [conversation_id], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  user_id         String       @db.ObjectId
+  user            User         @relation(fields: [user_id], references: [id],onDelete: Cascade, onUpdate: Cascade)
+}
+
+model Message {
+  id              String       @id @default(auto()) @map("_id") @db.ObjectId
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @default(now())
+  content         String
+  conversation_id String       @db.ObjectId
+  conversation    Conversation @relation(fields: [conversation_id], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  user_id         String       @db.ObjectId
+  user            User         @relation(fields: [user_id], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  read            Boolean      @default(false)
+  read_at         DateTime     @default(now())
+}
