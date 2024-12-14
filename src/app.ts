@@ -18,14 +18,14 @@ import path from 'path';
 export class App {
   public app: express.Application;
   public env: string;
-  public port: string | number;
+  public port: number;
   public server: http.Server;
   public io: any;
 
   constructor(routes: Routes[]) {
     this.app = express();
     this.env = NODE_ENV || 'development';
-    this.port = PORT || 8585;
+    this.port = Number(PORT) || 8585;
     this.server = http.createServer(this.app);
     this.io = require('socket.io')(this.server, {
       cors: {
@@ -41,11 +41,23 @@ export class App {
   }
 
   public listen() {
-    this.server.listen(this.port, () => {
-      logger.info(`=================================`);
-      logger.info(`======= ENV: ${this.env} =======`);
-      logger.info(`🚀 App listening on the port ${this.port}`);
-      logger.info(`=================================`);
+    this.server
+      .listen(this.port, '127.0.0.1', () => {
+        logger.info(`=================================`);
+        logger.info(`======= ENV: ${this.env} =======`);
+        logger.info(`🚀 App listening on http://127.0.0.1:${this.port}`);
+        logger.info(`=================================`);
+      })
+      .on('error', err => {
+        logger.error(`❌ Failed to start the server: ${err.message}`);
+        process.exit(1);
+      });
+    process.on('SIGINT', () => {
+      logger.info('🔄 Gracefully shutting down...');
+      this.server.close(() => {
+        logger.info('✅ Server closed successfully.');
+        process.exit(0);
+      });
     });
   }
 
@@ -63,7 +75,7 @@ export class App {
   }
 
   public getServer() {
-    return this.app;
+    return this.server;
   }
   private initializeMiddlewares() {
     this.app.use('/public', express.static(path.join(__dirname, '../public')));
