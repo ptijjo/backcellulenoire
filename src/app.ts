@@ -25,7 +25,7 @@ export class App {
   constructor(routes: Routes[]) {
     this.app = express();
     this.env = NODE_ENV || 'development';
-    this.port = Number(PORT) || 8585;
+    this.port = Number(PORT);
     this.server = http.createServer(this.app);
     this.io = require('socket.io')(this.server, {
       cors: {
