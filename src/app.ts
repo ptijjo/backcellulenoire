@@ -20,24 +20,17 @@ export class App {
   public env: string;
   public port: number;
   public server: http.Server;
-  public io: any;
 
   constructor(routes: Routes[]) {
     this.app = express();
     this.env = NODE_ENV || 'development';
     this.port = Number(PORT);
     this.server = http.createServer(this.app);
-    this.io = require('socket.io')(this.server, {
-      cors: {
-        origin: '*',
-      },
-    });
 
     this.initializeMiddlewares();
     this.initializeRoutes(routes);
     this.initializeSwagger();
     this.initializeErrorHandling();
-    this.initializeSocket();
   }
 
   public listen() {
@@ -59,19 +52,6 @@ export class App {
         process.exit(0);
       });
     });
-  }
-
-  private initializeSocket() {
-    this.io.on('connection', socket => {
-      console.log('User is connected');
-      socket.on('disconnect', () => {
-        console.log('User disconnected');
-      });
-    });
-  }
-
-  public getSocketInstance() {
-    return this.io;
   }
 
   public getServer() {

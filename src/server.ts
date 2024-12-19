@@ -9,6 +9,4 @@ ValidateEnv();
 
 const app = new App([new UserRoute(), new CategoryRoute(), new BookRoute(), new HomeRoute()]);
 
-export const socketInstance = app.getSocketInstance();
-
 app.listen();
