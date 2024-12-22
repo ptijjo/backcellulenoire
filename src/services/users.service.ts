@@ -6,7 +6,7 @@ import { User } from '@interfaces/users.interface';
 import { sendMailActivation } from '@/mails/user/user.mail';
 const cuid = require('cuid');
 import jwt from 'jsonwebtoken';
-import { EXPIRED_TOKEN_INVITATION, SECRET_KEY_INVITATION } from '@/config';
+import { EXPIRED_TOKEN_INVITATION, FRONT_END, SECRET_KEY_INVITATION } from '@/config';
 import bcrypt from 'bcrypt';
 import fs from 'fs/promises';
 import path from 'path';
@@ -55,7 +55,10 @@ export class UserService {
     );
 
     // sendEmail
-    const link = `${process.env.FRONT_END}/${tokenInvitation}`;
+    const link = `${FRONT_END}/${tokenInvitation}`;
+    console.log('====================================');
+    console.log(link);
+    console.log('====================================');
 
     await sendMailActivation(invitationData.email, link);
     // if (!envoi) throw new HttpException(400, "Erreur lors de l'invitation");
