@@ -33,7 +33,7 @@ export class MailService {
     });
   }
 
-  public async getTemplate(content: string, prehead: string, linkUrl: string, disclaimer: string): Promise<string> {
+  public async getTemplate(content: string, subject: string, link: string, disclaimer: string): Promise<string> {
     return `
         <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -441,7 +441,7 @@ export class MailService {
                                                                         <tr>
                                                                             <td align="left">
                                                                                 <div class="email-title-text">
-                                                                                    ${prehead}
+                                                                                    ${subject}
                                                                                 </div>
                                                                             </td>
                                                                         </tr>
@@ -485,7 +485,7 @@ export class MailService {
                                                                                 <p>
                                                                                     ${content}
                                                                                 </p>
-                                                                                <a href="${linkUrl}"
+                                                                                <a href="${link}"
                                                                                     class="btn-2">Activez votre compte</a>
                                                                                 <div class="center-text">
                                                                                     ${disclaimer}
