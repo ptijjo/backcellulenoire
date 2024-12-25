@@ -1,15 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import { Service } from 'typedi';
-import { CreateUserDto, InvitationUserDto, UpdateUserDto, UpdateUserRoleDto } from '@dtos/users.dto';
+import { CreateUserDto, ForgetPasswordDto, InvitationUserDto, UpdateUserDto, UpdateUserRoleDto } from '@dtos/users.dto';
 import { HttpException } from '@/exceptions/httpException';
 import { User } from '@interfaces/users.interface';
-import { sendMailActivation } from '@/mails/user/user.mail';
+import { sendMailActivation, sendResetPassword } from '@/mails/user/user.mail';
 const cuid = require('cuid');
 import jwt from 'jsonwebtoken';
-import { EXPIRED_TOKEN_INVITATION, FRONT_END, SECRET_KEY_INVITATION } from '@/config';
+import { EXPIRED_TOKEN_INVITATION, FRONT_END, LINK_PASSWORD, SECRET_KEY_INVITATION } from '@/config';
 import bcrypt from 'bcrypt';
-import fs from 'fs/promises';
-import path from 'path';
 
 @Service()
 export class UserService {
@@ -56,9 +54,6 @@ export class UserService {
 
     // sendEmail
     const link = `${FRONT_END}/${tokenInvitation}`;
-    console.log('====================================');
-    console.log(link);
-    console.log('====================================');
 
     await sendMailActivation(invitationData.email, link);
     // if (!envoi) throw new HttpException(400, "Erreur lors de l'invitation");
@@ -150,41 +145,39 @@ export class UserService {
     return deleteUserData;
   }
 
-  public async updateUserAvatar(userId: string, userAvatar: string, authUser: string): Promise<User> {
-    const findUser: User = await this.user.findUnique({ where: { id: userId } });
+  public async resetPassword(email: string, userData: ForgetPasswordDto): Promise<User> {
+    const findUser: User = await this.user.findUnique({ where: { email } });
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
-    if (userId !== authUser) throw new HttpException(409, 'Opération non authorisé !');
+    const hashPassword = await bcrypt.hash(userData.password, 10);
 
-    const file = findUser.avatar ? findUser.avatar.split('/avatar/')[1] : null;
-    console.log(findUser.avatar);
-
-    if (file) {
-      const filePath = path.join(__dirname, '..', '..', 'public', 'avatar', file);
-
-      try {
-        // Vérifie si le fichier existe avant de le supprimer
-        await fs.access(filePath); // Vérifie l'existence
-        await fs.unlink(filePath); // Supprime le fichier
-        console.log('Ancien avatar supprimé avec succès.');
-      } catch (error) {
-        if (error.code === 'ENOENT') {
-          console.warn("Le fichier à supprimer n'existe pas, aucune action nécessaire.");
-        } else {
-          console.error('Erreur lors de la suppression du fichier :', error);
-          throw new HttpException(500, "Erreur lors de la suppression de l'ancien avatar");
-        }
-      }
-    } else {
-      console.log('Aucun avatar à supprimer.');
-    }
-
-    const updateUserData = await this.user.update({
-      where: { id: authUser },
+    const updateUser: User = await this.user.update({
+      where: {
+        email: findUser.email,
+      },
       data: {
-        avatar: userAvatar,
+        password: hashPassword,
       },
     });
-    return updateUserData;
+    return updateUser;
+  }
+
+  public async forgetPassword(email: string): Promise<string> {
+    const findUser: User = await this.user.findUnique({ where: { email: email } });
+    if (!findUser) throw new HttpException(409, `This email ${email} doesn't exists`);
+
+    const tokenInvitation = jwt.sign(
+      {
+        email: email,
+      },
+      SECRET_KEY_INVITATION as string,
+      { expiresIn: EXPIRED_TOKEN_INVITATION as string },
+    );
+
+    const link = `${LINK_PASSWORD}/${tokenInvitation}`;
+
+    await sendResetPassword(email, link);
+
+    return link;
   }
 }

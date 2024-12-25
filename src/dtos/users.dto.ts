@@ -39,6 +39,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @MinLength(2)
+  @MaxLength(16)
   public pseudo?: string;
 
   @IsOptional()
@@ -70,8 +72,8 @@ export class UpdateUserRoleDto {
   public role?: ROLE;
 }
 
-export class UpdateUserAvatarDto {
+export class ForgetPasswordDto {
   @IsString()
   @IsNotEmpty()
-  public avatar: string;
+  public password: string;
 }

@@ -16,4 +16,5 @@ export const {
   FRONT_END,
   SECRET_KEY_INVITATION,
   EXPIRED_TOKEN_INVITATION,
+  LINK_PASSWORD,
 } = process.env;

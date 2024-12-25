@@ -58,6 +58,8 @@ export class App {
     return this.server;
   }
   private initializeMiddlewares() {
+    // Indique à Express de faire confiance aux en-têtes X-Forwarded-Proto du proxy
+    this.app.set('trust proxy', 1);
     this.app.use('/public', express.static(path.join(__dirname, '../public')));
     this.app.use(morgan(LOG_FORMAT, { stream }));
     this.app.use(cors({ origin: ORIGIN, credentials: CREDENTIALS }));

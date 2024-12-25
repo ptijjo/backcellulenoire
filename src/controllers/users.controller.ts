@@ -2,10 +2,11 @@ import { NextFunction, Request, Response } from 'express';
 import { Container } from 'typedi';
 import { User } from '@interfaces/users.interface';
 import { UserService } from '@services/users.service';
-import { InvitationUserDto, UpdateUserDto } from '@/dtos/users.dto';
+import { ForgetPasswordDto, InvitationUserDto, UpdateUserDto } from '@/dtos/users.dto';
 import { TokenService } from '@/services/token.service';
 import jwt from 'jsonwebtoken';
 import { EXPIRED_TOKEN, SECRET_KEY } from '@/config';
+import { sendResetPassword } from '@/mails/user/user.mail';
 export class UserController {
   public user = Container.get(UserService);
   public token = Container.get(TokenService);
@@ -109,22 +110,6 @@ export class UserController {
     }
   };
 
-  public updateUserAvatar = async (req: any, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const userId = String(req.params.id);
-      const authUser = String(req.auth.userId);
-
-      const avatar = `${req.protocol}://${req.get('host')}/public/avatar/${req.file.filename}`.split(' ').join('');
-
-      console.log(avatar);
-      const updateUserData: User = await this.user.updateUserAvatar(userId, avatar, authUser);
-
-      res.status(200).json({ data: updateUserData, message: 'updated' });
-    } catch (error) {
-      next(error);
-    }
-  };
-
   public updateUserRole = async (req: any, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = String(req.params.id);
@@ -146,6 +131,31 @@ export class UserController {
       const role = req.auth.userRole;
 
       res.status(200).json({ pseudo, avatar, id, role, email });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userData: ForgetPasswordDto = req.body;
+      const decodedToken = await this.token.tokenInvitation(req.params.id);
+      const email = decodedToken.email;
+
+      const newPassword: User = await this.user.resetPassword(email, userData);
+
+      res.status(200).json(newPassword);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  public forgetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const data: InvitationUserDto = req.body;
+      const inviteUser = await this.user.forgetPassword(data.email);
+
+      res.status(200).json({ data: inviteUser, message: 'invitation envoyée !' });
     } catch (error) {
       next(error);
     }
