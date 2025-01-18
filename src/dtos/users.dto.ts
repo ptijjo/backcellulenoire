@@ -3,7 +3,7 @@ import { IsEmail, IsString, IsNotEmpty, MinLength, MaxLength, IsDate, Validate, 
 const cuid = require('cuid');
 
 // Custom validator for CUID
-import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
+import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments, registerDecorator, ValidationOptions } from 'class-validator';
 
 @ValidatorConstraint({ name: 'isCuid', async: false })
 class IsCuidConstraint implements ValidatorConstraintInterface {
@@ -18,6 +18,28 @@ class IsCuidConstraint implements ValidatorConstraintInterface {
   }
 }
 
+const IsStrongPassword = (validationOptions?: ValidationOptions) => {
+  return (object: Object, propertyName: string) => {
+    registerDecorator({
+      name: 'isStrongPassword',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: string, args: ValidationArguments) {
+          console.log(args);
+          const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
+          return typeof value === 'string' && strongPasswordRegex.test(value);
+        },
+        defaultMessage(args: ValidationArguments) {
+          console.log(args);
+          return 'Le mot de passe doit contenir entre 8 et 16 caractères, avec au moins une majuscule, un chiffre et un symbole.';
+        },
+      },
+    });
+  };
+};
+
 export class CreateUserDto {
   @IsOptional()
   @IsEmail()
@@ -26,8 +48,7 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  // @MinLength(9)
-  // @MaxLength(32)
+  @IsStrongPassword()
   public password?: string;
 
   @IsOptional()
@@ -75,5 +96,6 @@ export class UpdateUserRoleDto {
 export class ForgetPasswordDto {
   @IsString()
   @IsNotEmpty()
+  @IsStrongPassword()
   public password: string;
 }
