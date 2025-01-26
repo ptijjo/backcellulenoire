@@ -36,7 +36,10 @@ export class BookService {
         },
       });
   
-      if (!findCategory) throw new HttpException(409, "category doesn't exist");
+      if (findCategory===null) {
+        console.log(findCategory)
+        throw new HttpException(409, "category doesn't exist");
+      }
       categoryFilterCondition = {
         categoryId: findCategory.id,
       };
@@ -58,14 +61,14 @@ export class BookService {
 
 
     return (allBook)
-  }
+  };
 
   public async findBookById(bookId: string): Promise<Book> {
     const findBook: Book = await this.book.findUnique({ where: { id: bookId } });
     if (!findBook) throw new HttpException(409, "book doesn't exist");
 
     return findBook;
-  }
+  };
 
   public async addBook(bookData: AddBookDto, categoryName: string , url: string): Promise<Book> {
     const findCategory = await this.category.findUnique({
@@ -87,7 +90,7 @@ export class BookService {
 
     return newbook;
     
-  }
+  };
 
   public async updatebook(bookId: string, bookData: UpdatebookDto): Promise<Book> {
     const findBook: Book = await this.book.findUnique({ where: { id: bookId } });
@@ -109,7 +112,7 @@ export class BookService {
       }
     });
     return updateBookData;
-  }
+  };
 
   public async deletebook(bookId: string): Promise<Book> {
     const findBook: Book = await this.book.findUnique({ where: { id: bookId } });
@@ -123,5 +126,10 @@ export class BookService {
     const deleteBookData = await this.book.delete({ where: { id: bookId } });
     return deleteBookData;
      
+  };
+
+  public async numberOfBook(): Promise<number>{
+    const nbBookTotal = await this.book.count();
+    return nbBookTotal;
   }
 }

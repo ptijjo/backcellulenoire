@@ -76,4 +76,14 @@ export class BookController {
       next(error);
     }
   };
+
+  public numberOfBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const nbBookTotal: number = await this.book.numberOfBook();
+
+      res.status(200).json({data:nbBookTotal, message: "numbers of book"})
+    } catch (error) {
+      next(error)
+    }
+  }
 }

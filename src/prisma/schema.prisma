@@ -21,6 +21,9 @@ enum CATEGORY {
   religion
   philosophie
   spiritualite
+  sciences
+  jeunesse
+  langue
 }
 
 model User {

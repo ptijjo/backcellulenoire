@@ -23,5 +23,6 @@ export class BookRoute implements Routes {
     this.router.post(`${this.path}`, modo,uploadBook,ValidationMiddleware(AddBookDto), this.book.addBook); // add book
     this.router.put(`${this.path}/:id`, modo, ValidationMiddleware(UpdatebookDto, true), this.book.updateBook); // update book
     this.router.delete(`${this.path}/:id`, modo, this.book.deleteBook); // delete book
+    this.router.get(`${this.path}_totalBooks`, auth, this.book.numberOfBook); // total de livres présents dans la bdd
   }
 }
