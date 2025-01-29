@@ -30,6 +30,7 @@ export class BookService {
     let categoryFilterCondition = {};
 
     if (filtre) {
+   
       const findCategory = await this.category.findUnique({
         where: {
           type: filtre as CATEGORY,
