@@ -5,6 +5,6 @@ import { IsString, IsNotEmpty, IsIn } from 'class-validator';
 export class CreateCategoryDto {
   @IsString()
   @IsNotEmpty()
-  @IsIn(["histoire","religion","philosophie","spiritualite","jeunesse","sciences","langue"])
+  @IsIn(["histoire","religion","philosophie","spiritualite","jeunesse","sciences","langue","roman"])
   public type: CATEGORY;
 }

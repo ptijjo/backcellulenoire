@@ -24,6 +24,7 @@ enum CATEGORY {
   sciences
   jeunesse
   langue
+  roman
 }
 
 model User {
