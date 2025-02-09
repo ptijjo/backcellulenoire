@@ -27,9 +27,10 @@ module.exports = {
     },
     {
       name: 'front',
-      script: '../httpdocs/node_modules/.bin/next',
+      script: 'node_modules/.bin/next',
       args: 'start -p 5011',
       exec_mode: 'cluster', // 'cluster' or 'fork'
+      cwd: '/var/www/vhosts/cellulenoire.fr/httpdocs',
       instance_var: 'INSTANCE_ID', // instance variable
       instances: 2, // pm2 instance count
       autorestart: true, // auto restart if process crash
@@ -39,9 +40,6 @@ module.exports = {
       merge_logs: true, // if true, stdout and stderr will be merged and sent to pm2 log
       output: './logs/access.log', // pm2 log file
       error: './logs/error.log', // pm2 error log file
-      env: {
-        NODE_ENV: 'development',
-      },
       env_production: {
         NODE_ENV: 'production',
         PORT: 5011,
