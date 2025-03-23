@@ -53,7 +53,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['user', 'modo', 'admin'])
+  @IsIn(['user', 'modo', 'admin', 'new'])
   @IsNotEmpty()
   public role?: ROLE;
 
@@ -88,7 +88,7 @@ export class UpdateUserDto {
 
 export class UpdateUserRoleDto {
   @IsString()
-  @IsIn(['user', 'modo', 'admin'])
+  @IsIn(['user', 'modo', 'admin', 'new'])
   @IsNotEmpty()
   public role?: ROLE;
 }
