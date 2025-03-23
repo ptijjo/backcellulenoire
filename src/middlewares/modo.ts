@@ -31,7 +31,7 @@ export const modo = (req: AuthRequest, res: Response, next: NextFunction) => {
       userRole: userRole,
       userDownloaded:userDownloaded,
     };
-    if (userRole === 'user') return res.status(403).json({ error: 'Il faut être admin ou modo pour continuer' });
+    if (userRole === 'user' || userRole === 'new') return res.status(403).json({ error: 'Il faut être admin ou modo pour continuer' });
 
     next();
   } catch (error) {
