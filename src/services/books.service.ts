@@ -143,8 +143,6 @@ export class BookService {
     //Vérification du fichier sur le serveur
     const filePath = path.join(__dirname, '..', '..', 'public', 'books', filename);
 
-    console.log(filePath);
-
     try {
       await fs.access(filePath);
     } catch (error) {
@@ -168,9 +166,7 @@ export class BookService {
         id: findUser.id,
       },
       data: {
-        download: {
-          increment: 1,
-        },
+        download: findUser.download + 1,
       },
     });
 
