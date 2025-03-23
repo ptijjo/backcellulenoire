@@ -11,6 +11,7 @@ generator client {
 }
 
 enum ROLE {
+  new
   user
   modo
   admin
@@ -28,14 +29,16 @@ enum CATEGORY {
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  email        String     @unique
   password     String
-  pseudo       String   @unique
-  avatar       String   @default("https://vibz.s3.eu-central-1.amazonaws.com/logo/photoProfil.png")
-  role         ROLE     @default(user)
-  idInvitation String   @unique
-  createdAt    DateTime @default(now())
+  pseudo       String     @unique
+  avatar       String     @default("https://vibz.s3.eu-central-1.amazonaws.com/logo/photoProfil.png")
+  role         ROLE       @default(new)
+  download     Int        @default(0)
+  idInvitation String     @unique
+  createdAt    DateTime   @default(now())
+  downloaded   Download[]
 }
 
 model Book {
@@ -44,13 +47,27 @@ model Book {
   url        String   @unique
   author     String
   uploadedAt DateTime @default(now())
-  category   Category @relation(fields: [categoryId], references: [id],onDelete: Cascade, onUpdate: Cascade)
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   categoryId String   @db.ObjectId // Référence à la catégorie
+
+  downloaded Download[]
 }
 
 model Category {
-  id    String   @id @default(auto()) @map("_id") @db.ObjectId
-  type  CATEGORY @unique
-  books Book[] // Relation avec les livres
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  type      CATEGORY @unique
+  createdAt DateTime @default(now())
+  books     Book[] // Relation avec les livres
 }
 
+model Download {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+
+  userId String @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  bookId String @db.ObjectId
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}

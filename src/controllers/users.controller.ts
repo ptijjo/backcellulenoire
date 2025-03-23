@@ -88,6 +88,7 @@ export class UserController {
           userRole: connectUserData.role,
           userPseudo: connectUserData.pseudo,
           userAvatar: connectUserData.avatar,
+          userDownloaded: connectUserData.download,
         },
         SECRET_KEY as string,
         { expiresIn: EXPIRED_TOKEN as string },

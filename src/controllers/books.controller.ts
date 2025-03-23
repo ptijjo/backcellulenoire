@@ -1,10 +1,12 @@
 /* eslint-disable prettier/prettier */
 import { NextFunction, Request, Response } from 'express';
+import { AuthRequest } from "../utils/types/express/index";
 import { Container } from 'typedi';
 import { Book } from '@interfaces/books.interface';
 import { BookService } from '@services/books.service';
 import { CATEGORY } from '@prisma/client';
 import { AddBookDto, UpdatebookDto } from '@/dtos/books.dto';
+import { HttpException } from '@/exceptions/httpException';
 
 export class BookController {
   public book = Container.get(BookService);
@@ -82,6 +84,25 @@ export class BookController {
       const nbBookTotal: number = await this.book.numberOfBook();
 
       res.status(200).json({data:nbBookTotal, message: "numbers of book"})
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  public downloadBook = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const bookId: string = req.params.id as string;
+      const userId: string = req.auth?.userId;
+
+      const download = await this.book.downloadBook(bookId, userId);
+
+      res.download(download.filePath, err => {
+        if (err) {
+          console.error("❌ Erreur lors du téléchargement :", err);
+          next(new HttpException(500, "Erreur lors du téléchargement du fichier"));
+        }
+      });
+      
     } catch (error) {
       next(error)
     }

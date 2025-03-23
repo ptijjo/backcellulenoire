@@ -6,6 +6,7 @@ export interface User {
   password?: string;
   pseudo: string;
   avatar?: string;
+  download?: number;
   role?: ROLE;
   createdAt: Date;
   idInvitation: string;

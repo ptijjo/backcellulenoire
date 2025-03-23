@@ -26,12 +26,20 @@ export class UserService {
       where: {
         OR: [{ pseudo: { contains: search, mode: 'insensitive' } }, { email: { contains: search, mode: 'insensitive' } }],
       },
+      include: {
+        downloaded: true,
+      },
     });
     return allUser;
   }
 
   public async findUserById(userId: string): Promise<User> {
-    const findUser: User = await this.user.findUnique({ where: { id: userId } });
+    const findUser: User = await this.user.findUnique({
+      where: { id: userId },
+      include: {
+        downloaded: true,
+      },
+    });
     if (!findUser) throw new HttpException(409, "User doesn't exist");
 
     return findUser;

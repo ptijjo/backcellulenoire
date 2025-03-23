@@ -1,5 +1,5 @@
 import { ROLE } from '@prisma/client';
-import { IsEmail, IsString, IsNotEmpty, MinLength, MaxLength, IsDate, Validate, IsIn, IsOptional } from 'class-validator';
+import { IsEmail, IsString, IsNotEmpty, MinLength, MaxLength, IsDate, Validate, IsIn, IsOptional, IsNumber } from 'class-validator';
 const cuid = require('cuid');
 
 // Custom validator for CUID
@@ -98,4 +98,9 @@ export class ForgetPasswordDto {
   @IsNotEmpty()
   @IsStrongPassword()
   public password: string;
+}
+export class UpdateDownloadDto {
+  @IsNumber()
+  @IsNotEmpty()
+  public download: number;
 }
