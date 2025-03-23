@@ -166,7 +166,9 @@ export class BookService {
         id: findUser.id,
       },
       data: {
-        download: findUser.download + 1,
+        download: {
+          increment: 1,
+        },
       },
     });
 
