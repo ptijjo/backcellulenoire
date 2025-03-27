@@ -56,7 +56,6 @@ model Book {
 model Category {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   type      CATEGORY @unique
-  createdAt DateTime @default(now())
   books     Book[] // Relation avec les livres
 }
 

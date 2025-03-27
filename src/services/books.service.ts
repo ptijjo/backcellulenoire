@@ -161,6 +161,17 @@ export class BookService {
       },
     });
 
+    if (findUser.download === null) {
+      await this.user.update({
+        where: {
+          id: findUser.id,
+        },
+        data: {
+          download: 0,
+        },
+      });
+    }
+
     const updateUser: User = await this.user.update({
       where: {
         id: findUser.id,
