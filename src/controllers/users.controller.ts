@@ -7,6 +7,7 @@ import { TokenService } from '@/services/token.service';
 import jwt from 'jsonwebtoken';
 import { EXPIRED_TOKEN, SECRET_KEY } from '@/config';
 import { sendResetPassword } from '@/mails/user/user.mail';
+import { AuthRequest } from '@/utils/types/express';
 export class UserController {
   public user = Container.get(UserService);
   public token = Container.get(TokenService);
@@ -111,7 +112,7 @@ export class UserController {
     }
   };
 
-  public updateUserRole = async (req: any, res: Response, next: NextFunction): Promise<void> => {
+  public updateUserRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = String(req.params.id);
       const userData: User = req.body;
@@ -123,15 +124,16 @@ export class UserController {
     }
   };
 
-  public decodageToken = async (req: any, res: Response, next: NextFunction) => {
+  public decodageToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const id = req.auth.userId;
       const pseudo = req.auth.userPseudo;
       const avatar = req.auth.userAvatar;
       const email = req.auth.userEmail;
       const role = req.auth.userRole;
+      const download = req.auth.userDownloaded;
 
-      res.status(200).json({ pseudo, avatar, id, role, email });
+      res.status(200).json({ pseudo, avatar, id, role, email, download });
     } catch (error) {
       next(error);
     }

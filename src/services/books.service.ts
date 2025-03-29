@@ -151,7 +151,7 @@ export class BookService {
 
     // On vérifie si le role est user et il a déja télécharger un livre alors il ne pourra plus le faire
     if (findUser.role === 'new' && findUser.download >= 1) {
-      throw new HttpException(409, 'Vous ne pouvez pas télécharger plus de livres');
+      throw new HttpException(404, 'Vous ne pouvez pas télécharger plus de livres');
     }
 
     await this.downloaded.create({
