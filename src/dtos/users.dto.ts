@@ -1,9 +1,9 @@
 import { ROLE } from '@prisma/client';
-import { IsEmail, IsString, IsNotEmpty, MinLength, MaxLength, IsDate, Validate, IsIn, IsOptional, IsNumber } from 'class-validator';
+import { IsEmail, IsString, IsNotEmpty, MinLength, MaxLength, IsDate, Validate, IsIn, IsOptional, IsNumber, IsStrongPassword } from 'class-validator';
 const cuid = require('cuid');
 
 // Custom validator for CUID
-import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments, registerDecorator, ValidationOptions } from 'class-validator';
+import { ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
 
 @ValidatorConstraint({ name: 'isCuid', async: false })
 class IsCuidConstraint implements ValidatorConstraintInterface {
@@ -18,28 +18,6 @@ class IsCuidConstraint implements ValidatorConstraintInterface {
   }
 }
 
-const IsStrongPassword = (validationOptions?: ValidationOptions) => {
-  return (object: Object, propertyName: string) => {
-    registerDecorator({
-      name: 'isStrongPassword',
-      target: object.constructor,
-      propertyName: propertyName,
-      options: validationOptions,
-      validator: {
-        validate(value: string, args: ValidationArguments) {
-          console.log(args);
-          const strongPasswordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,16}$/;
-          return typeof value === 'string' && strongPasswordRegex.test(value);
-        },
-        defaultMessage(args: ValidationArguments) {
-          console.log(args);
-          return 'Le mot de passe doit contenir entre 8 et 16 caractères, avec au moins une majuscule, un chiffre et un symbole.';
-        },
-      },
-    });
-  };
-};
-
 export class CreateUserDto {
   @IsOptional()
   @IsEmail()
@@ -48,7 +26,15 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  @IsStrongPassword()
+  @IsStrongPassword({
+    minLength: 8,
+    minLowercase: 1,
+    minUppercase: 1,
+    minNumbers: 1,
+   minSymbols:1,
+   }, {
+    message: "Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un symbole et au moins 8 caractères."
+   })
   public password?: string;
 
   @IsOptional()
