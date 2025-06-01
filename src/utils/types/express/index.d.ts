@@ -1,12 +1,8 @@
-import { Request } from 'express';
+import 'express';
 
-export interface AuthRequest extends Request {
-  auth?: {
-    userId: string;
-    userPseudo: string;
-    userEmail: string;
-    userAvatar: string;
-    userRole: string;
-    userDownloaded: number;
-  };
+declare module 'express' {
+  export interface Request {
+    user?: any; // ou mieux : user?: JwtPayload
+    file?: any;
+  }
 }

@@ -17,4 +17,5 @@ export const {
   SECRET_KEY_INVITATION,
   EXPIRED_TOKEN_INVITATION,
   LINK_PASSWORD,
+  HTTP_ONLY,
 } = process.env;

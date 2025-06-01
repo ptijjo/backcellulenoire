@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from 'express';
 import { Container } from 'typedi';
 import { Category } from '@interfaces/categories.interface';
 import { CategoryService } from '@services/categories.service';
+import { ROLE } from '@prisma/client';
+import { HttpException } from '@/exceptions/httpException';
 // import { CreateCategoryDto } from '@/dtos/categories.dto';
 
 export class CategoryController {
@@ -32,6 +34,10 @@ export class CategoryController {
   public createCategory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const categoryData: Category = req.body;
+
+      if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
+        throw new HttpException(404, "Opération non authorisée !");
+      }
       
       const createCategoryData: Category = await this.category.createCategory(categoryData);
 

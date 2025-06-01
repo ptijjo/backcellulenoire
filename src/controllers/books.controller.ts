@@ -1,10 +1,9 @@
 /* eslint-disable prettier/prettier */
 import { NextFunction, Request, Response } from 'express';
-import { AuthRequest } from "../utils/types/express/index";
 import { Container } from 'typedi';
 import { Book } from '@interfaces/books.interface';
 import { BookService } from '@services/books.service';
-import { CATEGORY } from '@prisma/client';
+import { CATEGORY, ROLE } from '@prisma/client';
 import { AddBookDto, UpdatebookDto } from '@/dtos/books.dto';
 import { HttpException } from '@/exceptions/httpException';
 
@@ -46,6 +45,9 @@ export class BookController {
         const url = `${req.protocol}://${req.get('host')}/public/books/${req.file.filename}`.split(' ').join('');
         const category: CATEGORY = req.body.categoryName;
 
+      if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
+        throw new HttpException(404, "Opération non authorisée !");
+      }
         
       const addBookData: Book = await this.book.addBook(bookData,category,url);
 
@@ -59,6 +61,11 @@ export class BookController {
     try {
       const bookId = String(req.params.id);
       const bookData: UpdatebookDto = req.body;
+
+      if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
+        throw new HttpException(404, "Opération non authorisée !");
+      }
+
       const updateBookData: Book = await this.book.updatebook(bookId, bookData);
 
       res.status(200).json({ data: updateBookData, message: 'updated' });
@@ -71,6 +78,12 @@ export class BookController {
   public deleteBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const bookId = String(req.params.id);
+
+      if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
+        throw new HttpException(404, "Opération non authorisée !");
+      }
+
+
       const deleteBookData: Book = await this.book.deletebook(bookId);
 
       res.status(200).json({ data: deleteBookData, message: 'deleted' });
@@ -89,10 +102,10 @@ export class BookController {
     }
   }
 
-  public downloadBook = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  public downloadBook = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const bookId: string = req.params.id as string;
-      const userId: string = req.auth?.userId;
+      const userId: string = req.user.id;
 
       const download = await this.book.downloadBook(bookId, userId);
 

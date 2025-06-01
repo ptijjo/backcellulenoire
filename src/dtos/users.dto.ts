@@ -104,3 +104,8 @@ export class UpdateDownloadDto {
   @IsNotEmpty()
   public download: number;
 }
+
+export class UpdateAvatarDto{
+  @IsString()
+  public avatar : string
+}

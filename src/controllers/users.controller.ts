@@ -4,10 +4,9 @@ import { User } from '@interfaces/users.interface';
 import { UserService } from '@services/users.service';
 import { ForgetPasswordDto, InvitationUserDto, UpdateUserDto } from '@/dtos/users.dto';
 import { TokenService } from '@/services/token.service';
-import jwt from 'jsonwebtoken';
-import { EXPIRED_TOKEN, SECRET_KEY } from '@/config';
-import { sendResetPassword } from '@/mails/user/user.mail';
-import { AuthRequest } from '@/utils/types/express';
+import { ROLE } from '@prisma/client';
+import { HttpException } from '@/exceptions/httpException';
+
 export class UserController {
   public user = Container.get(UserService);
   public token = Container.get(TokenService);
@@ -17,6 +16,11 @@ export class UserController {
       const page = parseInt(req.query.page as string) || 1; // Valeur par défaut : 1
       const itemPerPage = parseInt(req.query.itemPerPage as string) || 20; // Valeur par défaut : 20
       const search = (req.query.search as string) || '';
+
+      if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
+        throw new HttpException(404, "Opération non authorisée !");
+      }
+
       const findAllUsersData: User[] = await this.user.findAllUser(search, page, itemPerPage);
 
       res.status(200).json({ data: findAllUsersData, message: 'findAll' });
@@ -28,6 +32,11 @@ export class UserController {
   public getUserById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = String(req.params.id);
+
+      if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
+        throw new HttpException(404, "Opération non authorisée !");
+      }
+
       const findOneUserData: User = await this.user.findUserById(userId);
 
       res.status(200).json({ data: findOneUserData, message: 'findOne' });
@@ -39,6 +48,11 @@ export class UserController {
   public inviteUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const data: InvitationUserDto = req.body;
+
+      if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
+        throw new HttpException(404, "Opération non authorisée !");
+      }
+
       const inviteUser = await this.user.invitation(data);
 
       res.status(200).json({ data: inviteUser, message: 'invitation envoyée !' });
@@ -67,6 +81,10 @@ export class UserController {
     try {
       const userId = String(req.params.id);
       const userData: UpdateUserDto = req.body;
+
+      if ((req.user.id !== userId && req.user.role===ROLE.user) ||( req.user.id!==userId && req.user.role===ROLE.new)) {
+         throw new HttpException(404,"Opération non authorisée !")
+      }
       const updateUserData: User = await this.user.updateUser(userId, userData);
 
       res.status(200).json({ data: updateUserData, message: 'updated' });
@@ -75,35 +93,41 @@ export class UserController {
     }
   };
 
-  public connectUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const userData: { identifiant: string; password: string } = req.body;
-      const connectUserData: User = await this.user.connectionUser(userData);
+  // public connectUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  //   try {
+  //     const userData: { identifiant: string; password: string } = req.body;
+  //     const connectUserData: User = await this.user.connectionUser(userData);
 
-      //Creation du token d'authentification
+  //     //Creation du token d'authentification
 
-      const token = jwt.sign(
-        {
-          userId: connectUserData.id,
-          userEmail: connectUserData.email,
-          userRole: connectUserData.role,
-          userPseudo: connectUserData.pseudo,
-          userAvatar: connectUserData.avatar,
-          userDownloaded: connectUserData.download,
-        },
-        SECRET_KEY as string,
-        { expiresIn: EXPIRED_TOKEN as string },
-      );
+  //     const token = jwt.sign(
+  //       {
+  //         userId: connectUserData.id,
+  //         userEmail: connectUserData.email,
+  //         userRole: connectUserData.role,
+  //         userPseudo: connectUserData.pseudo,
+  //         userAvatar: connectUserData.avatar,
+  //         userDownloaded: connectUserData.download,
+  //       },
+  //       SECRET_KEY as string,
+  //       { expiresIn: EXPIRED_TOKEN as string },
+  //     );
 
-      res.status(200).json({ data: connectUserData, token: token, message: 'connected' });
-    } catch (error) {
-      next(error);
-    }
-  };
+  //     res.status(200).json({ data: connectUserData, token: token, message: 'connected' });
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // };
 
   public deleteUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = String(req.params.id);
+
+      
+      if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
+        throw new HttpException(404, "Opération non authorisée !");
+      }
+
       const deleteUserData: User = await this.user.deleteUser(userId);
 
       res.status(200).json({ data: deleteUserData, message: 'deleted' });
@@ -112,10 +136,15 @@ export class UserController {
     }
   };
 
-  public updateUserRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  public updateUserRole = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = String(req.params.id);
       const userData: User = req.body;
+
+        if (req.user.role !== ROLE.admin) {
+        throw new HttpException(404,"Opération non authorisée !")
+        }
+      
       const updateUserData: User = await this.user.updateUserRole(userId, userData);
 
       res.status(200).json({ data: updateUserData, message: 'updated' });
@@ -124,20 +153,20 @@ export class UserController {
     }
   };
 
-  public decodageToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
-    try {
-      const id = req.auth.userId;
-      const pseudo = req.auth.userPseudo;
-      const avatar = req.auth.userAvatar;
-      const email = req.auth.userEmail;
-      const role = req.auth.userRole;
-      const download = req.auth.userDownloaded;
+  // public decodageToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  //   try {
+  //     const id = req.auth.userId;
+  //     const pseudo = req.auth.userPseudo;
+  //     const avatar = req.auth.userAvatar;
+  //     const email = req.auth.userEmail;
+  //     const role = req.auth.userRole;
+  //     const download = req.auth.userDownloaded;
 
-      res.status(200).json({ pseudo, avatar, id, role, email, download });
-    } catch (error) {
-      next(error);
-    }
-  };
+  //     res.status(200).json({ pseudo, avatar, id, role, email, download });
+  //   } catch (error) {
+  //     next(error);
+  //   }
+  // };
 
   public resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -163,4 +192,16 @@ export class UserController {
       next(error);
     }
   };
+
+   public decodeToken = async (req: Request, res: Response): Promise<void> => {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(400).json({ message: 'User ID manquant dans le token' });
+    }
+
+    const findOneUserData: User = await this.user.findUserById(userId);
+    res.json(findOneUserData);
+  };
+
+
 }

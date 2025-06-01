@@ -57,7 +57,7 @@ export class UserService {
         idInvitation,
       },
       SECRET_KEY_INVITATION as string,
-      { expiresIn: EXPIRED_TOKEN_INVITATION as string },
+      { expiresIn: "1h" },
     );
 
     // sendEmail
@@ -84,42 +84,42 @@ export class UserService {
     return newUser;
   }
 
-  public async connectionUser(userData: { identifiant: string; password: string }): Promise<User> {
-    const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (regexEmail.test(userData.identifiant)) {
-      const findEmail: User = await this.user.findUnique({ where: { email: userData.identifiant } });
-      if (!findEmail) throw new HttpException(409, `Identifiants incorrects !`);
+  // public async connectionUser(userData: { identifiant: string; password: string }): Promise<User> {
+  //   const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  //   if (regexEmail.test(userData.identifiant)) {
+  //     const findEmail: User = await this.user.findUnique({ where: { email: userData.identifiant } });
+  //     if (!findEmail) throw new HttpException(409, `Identifiants incorrects !`);
 
-      const isPasswordMatching: boolean = await bcrypt.compare(userData.password, findEmail.password);
-      if (!isPasswordMatching) throw new HttpException(409, `Identifiants incorrects !`);
+  //     const isPasswordMatching: boolean = await bcrypt.compare(userData.password, findEmail.password);
+  //     if (!isPasswordMatching) throw new HttpException(409, `Identifiants incorrects !`);
 
-      // const updateUser = await this.user.update({
-      //   where: {
-      //     email: findEmail.email,
-      //   },
-      //   data: {
-      //     last_connection: localDate(),
-      //   },
-      // });
-      return findEmail;
-    } else {
-      const findPseudo: User = await this.user.findUnique({ where: { pseudo: userData.identifiant } });
-      if (!findPseudo) throw new HttpException(409, `Identifiants incorrects !`);
+  //     // const updateUser = await this.user.update({
+  //     //   where: {
+  //     //     email: findEmail.email,
+  //     //   },
+  //     //   data: {
+  //     //     last_connection: localDate(),
+  //     //   },
+  //     // });
+  //     return findEmail;
+  //   } else {
+  //     const findPseudo: User = await this.user.findUnique({ where: { pseudo: userData.identifiant } });
+  //     if (!findPseudo) throw new HttpException(409, `Identifiants incorrects !`);
 
-      const isPasswordMatching: boolean = await bcrypt.compare(userData.password, findPseudo.password);
-      if (!isPasswordMatching) throw new HttpException(409, `Identifiants incorrects !`);
+  //     const isPasswordMatching: boolean = await bcrypt.compare(userData.password, findPseudo.password);
+  //     if (!isPasswordMatching) throw new HttpException(409, `Identifiants incorrects !`);
 
-      // const updateUser = await this.user.update({
-      //   where: {
-      //     pseudo: findPseudo.pseudo,
-      //   },
-      //   data: {
-      //     last_connection: localDate(),
-      //   },
-      // });
-      return findPseudo;
-    }
-  }
+  //     // const updateUser = await this.user.update({
+  //     //   where: {
+  //     //     pseudo: findPseudo.pseudo,
+  //     //   },
+  //     //   data: {
+  //     //     last_connection: localDate(),
+  //     //   },
+  //     // });
+  //     return findPseudo;
+  //   }
+  // }
 
   public async updateUser(userId: string, userData: UpdateUserDto): Promise<User> {
     const findUser: User = await this.user.findUnique({ where: { id: userId } });
@@ -179,7 +179,7 @@ export class UserService {
         email: email,
       },
       SECRET_KEY_INVITATION as string,
-      { expiresIn: EXPIRED_TOKEN_INVITATION as string },
+      { expiresIn: "1h" },
     );
 
     const link = `${LINK_PASSWORD}/${tokenInvitation}`;
