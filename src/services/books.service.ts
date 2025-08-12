@@ -6,6 +6,7 @@ import { Book } from '@interfaces/books.interface';
 import { User } from '@interfaces/users.interface';
 import fs from 'fs/promises';
 import path from 'path';
+import { Downloaded } from '@/interfaces/downloads.interface';
 
 export type FindAllBookResult = {
   allBook: Book[];
@@ -134,8 +135,34 @@ export class BookService {
     const findBook: Book = await this.book.findUnique({ where: { id: bookId } });
     if (!findBook) throw new HttpException(409, "book doesn't exist");
 
-    const findUser: User = await this.user.findUnique({ where: { id: userId } });
+    let findUser: User = await this.user.findUnique({ where: { id: userId } });
     if (!findUser) throw new HttpException(409, "user doesn't exist");
+
+    //Trouver le dernier livre telechargé par l'user
+    const lastDownload: Downloaded | null = await this.downloaded.findFirst({
+      where: { userId: findUser.id },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    console.log(lastDownload);
+
+    if (lastDownload) {
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+      // Si le dernier téléchargement est plus vieux qu'un mois
+      if (lastDownload.createdAt < oneMonthAgo) {
+        findUser = await this.user.update({
+          where: { id: findUser.id },
+          data: { download: 0 },
+        });
+      }
+    }
+
+    // On vérifie si le role est user et il a déja télécharger un livre alors il ne pourra plus le faire
+    if (findUser.role === 'new' && findUser.download >= 1) {
+      throw new HttpException(404, "Vous ne pouvez télécharger qu'un livre par mois");
+    }
 
     //On récupère le nom du livre
     const filename = findBook.url.split('/books/')[1];
@@ -147,11 +174,6 @@ export class BookService {
       await fs.access(filePath);
     } catch (error) {
       throw new HttpException(409, 'Fichier introuvable');
-    }
-
-    // On vérifie si le role est user et il a déja télécharger un livre alors il ne pourra plus le faire
-    if (findUser.role === 'new' && findUser.download >= 1) {
-      throw new HttpException(404, 'Vous ne pouvez pas télécharger plus de livres');
     }
 
     await this.downloaded.create({

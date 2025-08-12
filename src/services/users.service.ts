@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ROLE } from '@prisma/client';
 import { Service } from 'typedi';
 import { CreateUserDto, ForgetPasswordDto, InvitationUserDto, UpdateUserDto, UpdateUserRoleDto } from '@dtos/users.dto';
 import { HttpException } from '@/exceptions/httpException';
@@ -6,7 +6,7 @@ import { User } from '@interfaces/users.interface';
 import { sendMailActivation, sendResetPassword } from '@/mails/user/user.mail';
 const cuid = require('cuid');
 import jwt from 'jsonwebtoken';
-import { EXPIRED_TOKEN_INVITATION, FRONT_END, LINK_PASSWORD, SECRET_KEY_INVITATION } from '@/config';
+import { FRONT_END, LINK_PASSWORD, SECRET_KEY_INVITATION } from '@/config';
 import bcrypt from 'bcrypt';
 
 @Service()
@@ -77,7 +77,6 @@ export class UserService {
         password: hashedPassword,
         pseudo: `user${userData.idInvitation}`,
         idInvitation: userData.idInvitation,
-        role: 'user',
       },
     });
 

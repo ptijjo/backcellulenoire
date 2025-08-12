@@ -28,7 +28,7 @@ export class UserRoute implements Routes {
     this.router.get(`${this.path}_decodeToken`, CookieGuard, RoleGuard(), this.user.decodeToken);
 
 
-    this.router.put(`${this.path}/:id`, CookieGuard, RoleGuard(["admin","modo"]), ValidationMiddleware(CreateUserDto, true), this.user.updateUser); //Update pseudo
+    this.router.put(`${this.path}/:id`, CookieGuard, RoleGuard([]), ValidationMiddleware(CreateUserDto, true), this.user.updateUser); //Update pseudo
 
     this.router.put(
       `${this.path}_updateRole/:id`,
