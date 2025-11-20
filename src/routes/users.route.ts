@@ -5,6 +5,7 @@ import { Routes } from '@interfaces/routes.interface';
 import { ValidationMiddleware } from '@middlewares/validation.middleware';
 import { CookieGuard } from '@/middlewares/cookie.guard';
 import { RoleGuard } from '@/middlewares/role.guard';
+import { authRateLimiter } from '@/middlewares/rateLimit.middleware';
 
 export class UserRoute implements Routes {
   public path = '/users';
@@ -20,7 +21,7 @@ export class UserRoute implements Routes {
 
     this.router.get(`${this.path}/:id`, CookieGuard, RoleGuard(["modo",'admin']), this.user.getUserById); //Get User by id
 
-    this.router.post(`${this.path}/:id`, ValidationMiddleware(CreateUserDto), this.user.createUser); // Create User
+    this.router.post(`${this.path}/:id`, ValidationMiddleware(CreateUserDto),authRateLimiter, this.user.createUser); // Create User
 
     this.router.post(`${this.path}`, CookieGuard, RoleGuard(['admin', 'modo']), ValidationMiddleware(InvitationUserDto), this.user.inviteUser); //Inviter User
 
