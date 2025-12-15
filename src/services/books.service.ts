@@ -118,7 +118,8 @@ export class BookService {
     if (!findBook) throw new HttpException(409, "book doesn't exist");
 
     const filename = findBook.url.split('/books/')[1];
-    const filePath = path.join(__dirname, '..', '..', 'public', 'books', filename);
+    // Use process.cwd() so dist build resolves public folder from project root
+    const filePath = path.resolve(process.cwd(), 'public', 'books', filename);
 
     await fs.unlink(filePath); // Supprime le fichier
 
@@ -168,7 +169,8 @@ export class BookService {
     const filename = findBook.url.split('/books/')[1];
 
     //Vérification du fichier sur le serveur
-    const filePath = path.join(__dirname, '..', '..', 'public', 'books', filename);
+    // Resolve from project root to work when running dist/src/server.js
+    const filePath = path.resolve(process.cwd(), 'public', 'books', filename);
 
     try {
       await fs.access(filePath);
