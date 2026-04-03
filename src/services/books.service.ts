@@ -117,8 +117,8 @@ export class BookService {
     const findBook: Book = await this.book.findUnique({ where: { id: bookId } });
     if (!findBook) throw new HttpException(409, "book doesn't exist");
 
-    const filename = findBook.url.split('/books/')[1];
-    // Use process.cwd() so dist build resolves public folder from project root
+    const filename = findBook.url.split('/books/')[1]?.split('?')[0] ?? '';
+    if (!filename) throw new HttpException(409, 'URL du livre invalide');
     const filePath = path.resolve(process.cwd(), 'public', 'books', filename);
 
     await fs.unlink(filePath); // Supprime le fichier
@@ -165,11 +165,8 @@ export class BookService {
       throw new HttpException(404, "Vous ne pouvez télécharger qu'un livre par mois");
     }
 
-    //On récupère le nom du livre
-    const filename = findBook.url.split('/books/')[1];
-
-    //Vérification du fichier sur le serveur
-    // Resolve from project root to work when running dist/src/server.js
+    const filename = findBook.url.split('/books/')[1]?.split('?')[0] ?? '';
+    if (!filename) throw new HttpException(409, 'URL du livre invalide');
     const filePath = path.resolve(process.cwd(), 'public', 'books', filename);
 
     try {

@@ -11,10 +11,10 @@ const MIME_TYPES = {
 
 // Configuration de multer avec un filtre pour n'accepter que les fichiers PDF
 const storage = multer.diskStorage({
-    destination: (req:Request,file, cb) => {
-         // on indique ou on va enregistrer les fichiers
-    const uploadPath = join(__dirname, '..', "..", 'public', 'books');
-    cb(null, uploadPath);
+    destination: (req: Request, file, cb) => {
+      // Racine du projet (cwd PM2 / npm start), pas dist/public — aligné sur books.service et express.static
+      const uploadPath = join(process.cwd(), 'public', 'books');
+      cb(null, uploadPath);
     },
 
     // Spécifie le nom du fichier
