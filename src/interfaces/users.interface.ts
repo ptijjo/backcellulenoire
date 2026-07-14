@@ -9,5 +9,5 @@ export interface User {
   download?: number;
   role?: ROLE;
   createdAt: Date;
-  idInvitation: string;
+  idInvitation?: string;
 }

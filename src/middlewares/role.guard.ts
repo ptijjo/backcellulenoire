@@ -21,10 +21,7 @@ export const RoleGuard = (requiredRoles = []) => {
     try {
       const userRoles = validateUserRoles(user.role);
 
-      const hasRole = requiredRoles.some(role => {
-        console.log('Role autorisé :', role);
-        return userRoles.includes(role);
-      });
+      const hasRole = requiredRoles.some(role => userRoles.includes(role));
 
       if (!hasRole) return next(new HttpException(409, 'Accès interdit'));
       next();

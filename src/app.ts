@@ -57,17 +57,22 @@ export class App {
   public getServer() {
     return this.server;
   }
+
   private initializeMiddlewares() {
-    // Indique à Express de faire confiance aux en-têtes X-Forwarded-Proto du proxy
     this.app.set('trust proxy', 1);
+
+    this.app.use('/public/books', (_req, res) => {
+      res.status(403).json({ message: 'Accès interdit. Utilisez le téléchargement authentifié.' });
+    });
+
     this.app.use('/public', express.static(path.join(process.cwd(), 'public')));
     this.app.use(morgan(LOG_FORMAT, { stream }));
     this.app.use(cors({ origin: ORIGIN, credentials: CREDENTIALS }));
     this.app.use(hpp());
     this.app.use(helmet());
     this.app.use(compression());
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
+    this.app.use(express.json({ limit: '1mb' }));
+    this.app.use(express.urlencoded({ extended: true, limit: '1mb' }));
     this.app.use(cookieParser());
   }
 
@@ -78,6 +83,8 @@ export class App {
   }
 
   private initializeSwagger() {
+    if (this.env === 'production') return;
+
     const options = {
       swaggerDefinition: {
         info: {

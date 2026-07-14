@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import { Container } from 'typedi';
 import { AuthService } from '@/services/auth.service';
 import { CreateAuthDto } from '../dtos/auth.dto';
-import { HTTP_ONLY } from '@/config';
+import { EXPIRED_TOKEN, HTTP_ONLY } from '@/config';
+import { parseDurationToMs } from '@/utils/tokenDuration';
 
 export class AuthController {
   public auth = Container.get(AuthService);
@@ -11,18 +12,16 @@ export class AuthController {
     try {
       const userData: CreateAuthDto = req.body;
       const token: string = await this.auth.login(userData);
+      const expiresIn = (EXPIRED_TOKEN as string) || '7d';
 
-      // Stocke le token dans un cookie httpOnly
       res.cookie('token', token, {
         httpOnly: HTTP_ONLY as unknown as boolean,
         secure: true,
-        maxAge: 3600 * 1000, // 1h
+        maxAge: parseDurationToMs(expiresIn),
         sameSite: 'none',
       });
 
-      console.log('Cookie envoyé ✅');
-
-      res.status(200).json('connection réussie');
+      res.status(200).json({ message: 'connection réussie' });
     } catch (error) {
       next(error);
     }
@@ -33,7 +32,7 @@ export class AuthController {
       res.clearCookie('token', {
         httpOnly: HTTP_ONLY as unknown as boolean,
         secure: true,
-        sameSite:"none",
+        sameSite: 'none',
       });
 
       res.status(200).json({ message: 'logout' });

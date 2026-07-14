@@ -3,6 +3,7 @@ import { Routes } from '@interfaces/routes.interface';
 import { ValidationMiddleware } from '@middlewares/validation.middleware';
 import { AuthController } from '@/controllers/auth.controller';
 import { CreateAuthDto } from '@/dtos/auth.dto';
+import { CookieGuard } from '@/middlewares/cookie.guard';
 import { authRateLimiter } from '@/middlewares/rateLimit.middleware';
 
 export class AuthRoute implements Routes {
@@ -16,6 +17,6 @@ export class AuthRoute implements Routes {
 
   private initializeRoutes() {
     this.router.post(`${this.path}login`, ValidationMiddleware(CreateAuthDto), authRateLimiter, this.auth.logIn);
-    this.router.get(`${this.path}logout`, this.auth.logOut);
+    this.router.get(`${this.path}logout`, CookieGuard, this.auth.logOut);
   }
 }

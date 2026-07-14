@@ -1,8 +1,22 @@
 import rateLimit from 'express-rate-limit';
 
 export const authRateLimiter = rateLimit({
-  windowMs: 30 * 60 * 1000, // 30 minutes
-  max: 15, // max 15 requêtes par IP
+  windowMs: 30 * 60 * 1000,
+  max: 15,
   message: 'Trop de tentatives, réessayez plus tard',
-  skipSuccessfulRequests: false, //  compte les requêtes réussies
+  skipSuccessfulRequests: false,
+});
+
+export const passwordResetRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  message: 'Trop de demandes de réinitialisation, réessayez plus tard',
+  skipSuccessfulRequests: true,
+});
+
+export const inviteRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  message: "Trop d'invitations envoyées, réessayez plus tard",
+  skipSuccessfulRequests: true,
 });

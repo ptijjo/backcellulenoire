@@ -1,6 +1,7 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+// Prisma ORM v6 — MongoDB (url ici est requis ; Prisma v7 non supporté pour MongoDB)
 datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
@@ -42,15 +43,20 @@ model User {
 }
 
 model Book {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  title      String
-  url        String   @unique
-  author     String
-  uploadedAt DateTime @default(now())
-  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  categoryId String   @db.ObjectId // Référence à la catégorie
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  url         String   @unique
+  author      String
+  uploadedAt  DateTime @default(now())
+  isPublished Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  categoryId  String   @db.ObjectId
 
   downloaded Download[]
+
+  @@index([isPublished])
+  @@index([isFeatured])
 }
 
 model Category {

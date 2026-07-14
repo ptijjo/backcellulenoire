@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Service } from 'typedi';
 import { HttpException } from '@/exceptions/httpException';
 import jwt from 'jsonwebtoken';
@@ -15,7 +14,7 @@ export class TokenService {
 
       return docodedToken;
     } catch (error) {
-      new HttpException(400, error);
+      throw new HttpException(400, error instanceof Error ? error.message : 'Token invalide');
     }
   }
 }

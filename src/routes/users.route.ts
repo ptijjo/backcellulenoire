@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import { UserController } from '@controllers/users.controller';
-import { CreateUserDto, ForgetPasswordDto, InvitationUserDto } from '@dtos/users.dto';
+import { CreateUserDto, ForgetPasswordDto, InvitationUserDto, UpdateUserDto, UpdateUserRoleDto } from '@dtos/users.dto';
 import { Routes } from '@interfaces/routes.interface';
 import { ValidationMiddleware } from '@middlewares/validation.middleware';
 import { CookieGuard } from '@/middlewares/cookie.guard';
 import { RoleGuard } from '@/middlewares/role.guard';
-import { authRateLimiter } from '@/middlewares/rateLimit.middleware';
+import { authRateLimiter, inviteRateLimiter, passwordResetRateLimiter } from '@/middlewares/rateLimit.middleware';
 
 export class UserRoute implements Routes {
   public path = '/users';
@@ -23,19 +23,19 @@ export class UserRoute implements Routes {
 
     this.router.post(`${this.path}/:id`, ValidationMiddleware(CreateUserDto),authRateLimiter, this.user.createUser); // Create User
 
-    this.router.post(`${this.path}`, CookieGuard, RoleGuard(['admin', 'modo']), ValidationMiddleware(InvitationUserDto), this.user.inviteUser); //Inviter User
+    this.router.post(`${this.path}`, CookieGuard, RoleGuard(['admin', 'modo']), inviteRateLimiter, ValidationMiddleware(InvitationUserDto), this.user.inviteUser); //Inviter User
 
 
     this.router.get(`${this.path}_decodeToken`, CookieGuard, RoleGuard(), this.user.decodeToken);
 
 
-    this.router.put(`${this.path}/:id`, CookieGuard, RoleGuard([]), ValidationMiddleware(CreateUserDto, true), this.user.updateUser); //Update pseudo
+    this.router.put(`${this.path}/:id`, CookieGuard, RoleGuard([]), ValidationMiddleware(UpdateUserDto), this.user.updateUser); //Update pseudo
 
     this.router.put(
       `${this.path}_updateRole/:id`,
       CookieGuard,
       RoleGuard(['admin']),
-      ValidationMiddleware(CreateUserDto, true),
+      ValidationMiddleware(UpdateUserRoleDto, true),
       this.user.updateUserRole,
     ); //Update role
 
@@ -43,8 +43,8 @@ export class UserRoute implements Routes {
 
     // this.router.get(`${this.path}_decodage`, CookieGuard, RoleGuard(), this.user.decodageToken); // Décodage du token
 
-    this.router.put(`${this.path}_resetPassword/:id`, ValidationMiddleware(ForgetPasswordDto, true), this.user.resetPassword); // Forget password
+    this.router.put(`${this.path}_resetPassword/:id`, passwordResetRateLimiter, ValidationMiddleware(ForgetPasswordDto), this.user.resetPassword); // Forget password
 
-    this.router.post(`${this.path}_forgetPassword`, this.user.forgetPassword); // send email for password
+    this.router.post(`${this.path}_forgetPassword`, passwordResetRateLimiter, ValidationMiddleware(InvitationUserDto), this.user.forgetPassword); // send email for password
   }
 }
