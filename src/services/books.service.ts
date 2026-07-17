@@ -4,11 +4,12 @@ import { AddBookDto, UpdatebookDto } from '@dtos/books.dto';
 import { HttpException } from '@/exceptions/httpException';
 import { Book, BookHomeOverview } from '@interfaces/books.interface';
 import { User } from '@interfaces/users.interface';
-import fs from 'fs/promises';
+import { Readable } from 'stream';
 import { PaginatedResponse } from '@/interfaces/pagination.interface';
 import { buildPaginationMeta } from '@/utils/pagination';
 import { prisma } from '@/utils/prisma';
-import { extractBookFilename, resolveBookFilePath, sanitizePdfFilename } from '@/utils/bookFile';
+import { extractBookFilename, sanitizePdfFilename } from '@/utils/bookFile';
+import { deleteStoredBook, openStoredBookStream, persistUploadedBook } from '@/utils/bookStorage';
 import { sanitizeUser } from '@/utils/sanitize';
 
 @Service()
@@ -86,7 +87,7 @@ export class BookService {
     return findBook;
   }
 
-  public async addBook(bookData: AddBookDto, categoryName: string, filename: string): Promise<Book> {
+  public async addBook(bookData: AddBookDto, categoryName: string, file: Express.Multer.File): Promise<Book> {
     const findCategory = await prisma.category.findUnique({
       where: {
         type: categoryName as CATEGORY,
@@ -95,10 +96,12 @@ export class BookService {
 
     if (!findCategory) throw new HttpException(409, "category doesn't exist");
 
+    const storedUrl = await persistUploadedBook(file);
+
     const newbook: Book = await prisma.book.create({
       data: {
         title: bookData.title,
-        url: filename,
+        url: storedUrl,
         author: bookData.author,
         categoryId: findCategory.id,
       },
@@ -136,9 +139,8 @@ export class BookService {
 
     const filename = extractBookFilename(findBook.url);
     if (!filename) throw new HttpException(409, 'URL du livre invalide');
-    const filePath = resolveBookFilePath(findBook.url);
 
-    await fs.unlink(filePath);
+    await deleteStoredBook(findBook.url);
 
     const deleteBookData = await prisma.book.delete({ where: { id: bookId } });
     return deleteBookData;
@@ -224,20 +226,18 @@ export class BookService {
   public async downloadBook(
     bookId: string,
     userId: string,
-  ): Promise<{ filePath: string; fileName: string; updateUser: ReturnType<typeof sanitizeUser<User>> }> {
+  ): Promise<{
+    stream: Readable;
+    filePath?: string;
+    fileName: string;
+    updateUser: ReturnType<typeof sanitizeUser<User>>;
+  }> {
     const findBook = await prisma.book.findUnique({ where: { id: bookId } });
     if (!findBook) throw new HttpException(409, "book doesn't exist");
     if (!findBook.isPublished) throw new HttpException(404, "Ce livre n'est pas disponible");
 
     const filename = extractBookFilename(findBook.url);
     if (!filename) throw new HttpException(409, 'URL du livre invalide');
-    const filePath = resolveBookFilePath(findBook.url);
-
-    try {
-      await fs.access(filePath);
-    } catch {
-      throw new HttpException(409, 'Fichier introuvable');
-    }
 
     const updateUser = await prisma.$transaction(async tx => {
       let findUser = await tx.user.findUnique({ where: { id: userId } });
@@ -281,7 +281,10 @@ export class BookService {
       });
     });
 
+    const { stream, filePath } = await openStoredBookStream(findBook.url);
+
     return {
+      stream,
       filePath,
       fileName: sanitizePdfFilename(findBook.title),
       updateUser: sanitizeUser(updateUser),

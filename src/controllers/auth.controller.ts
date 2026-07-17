@@ -2,8 +2,9 @@ import { NextFunction, Request, Response } from 'express';
 import { Container } from 'typedi';
 import { AuthService } from '@/services/auth.service';
 import { CreateAuthDto } from '../dtos/auth.dto';
-import { EXPIRED_TOKEN, HTTP_ONLY } from '@/config';
+import { EXPIRED_TOKEN } from '@/config';
 import { parseDurationToMs } from '@/utils/tokenDuration';
+import { sessionCookieOptions } from '@/utils/cookieOptions';
 
 export class AuthController {
   public auth = Container.get(AuthService);
@@ -14,12 +15,7 @@ export class AuthController {
       const token: string = await this.auth.login(userData);
       const expiresIn = (EXPIRED_TOKEN as string) || '7d';
 
-      res.cookie('token', token, {
-        httpOnly: HTTP_ONLY as unknown as boolean,
-        secure: true,
-        maxAge: parseDurationToMs(expiresIn),
-        sameSite: 'none',
-      });
+      res.cookie('token', token, sessionCookieOptions(parseDurationToMs(expiresIn)));
 
       res.status(200).json({ message: 'connection réussie' });
     } catch (error) {
@@ -29,11 +25,7 @@ export class AuthController {
 
   public logOut = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      res.clearCookie('token', {
-        httpOnly: HTTP_ONLY as unknown as boolean,
-        secure: true,
-        sameSite: 'none',
-      });
+      res.clearCookie('token', sessionCookieOptions());
 
       res.status(200).json({ message: 'logout' });
     } catch (error) {

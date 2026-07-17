@@ -11,8 +11,9 @@ const validateUserRoles = userRoles => {
   });
 };
 
-export const RoleGuard = (requiredRoles = []) => {
+export const RoleGuard = (requiredRoles: Array<'new' | 'user' | 'modo' | 'admin'> = []) => {
   return (req, res, next) => {
+    // Tableau vide = tout utilisateur authentifié (CookieGuard déjà passé).
     if (!requiredRoles.length) return next();
 
     const user = req.user;

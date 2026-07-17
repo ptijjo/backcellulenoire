@@ -9,6 +9,7 @@ import { HttpException } from '@/exceptions/httpException';
 import { PaginatedResponse } from '@/interfaces/pagination.interface';
 import { parsePaginationParams } from '@/utils/pagination';
 import { sanitizeBook, sanitizeBooks } from '@/utils/sanitize';
+import { assignMemoryFilename } from '@/middlewares/uploadBooks.middleware';
 
 export class BookController {
   public book = Container.get(BookService);
@@ -53,14 +54,16 @@ export class BookController {
   public addBook = async (req: any, res: Response, next: NextFunction): Promise<void> => {
     try {
       const bookData: AddBookDto = req.body;
-      const filename = req.file.filename;
+      if (!req.file) throw new HttpException(400, 'Fichier PDF obligatoire');
+
+      assignMemoryFilename(req.file);
       const category: CATEGORY = req.body.categoryName;
 
       if (req.user.role !== ROLE.admin && req.user.role !== ROLE.modo) {
         throw new HttpException(404, 'Opération non authorisée !');
       }
 
-      const addBookData: Book = await this.book.addBook(bookData, category, filename);
+      const addBookData: Book = await this.book.addBook(bookData, category, req.file);
 
       res.status(201).json({ data: sanitizeBook(addBookData), message: 'created' });
     } catch (error) {
@@ -157,11 +160,22 @@ export class BookController {
 
       const download = await this.book.downloadBook(bookId, userId);
 
-      res.download(download.filePath, download.fileName, err => {
-        if (err) {
-          next(new HttpException(500, 'Erreur lors du téléchargement du fichier'));
-        }
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${download.fileName}"`);
+
+      if (download.filePath) {
+        res.download(download.filePath, download.fileName, err => {
+          if (err) {
+            next(new HttpException(500, 'Erreur lors du téléchargement du fichier'));
+          }
+        });
+        return;
+      }
+
+      download.stream.on('error', () => {
+        next(new HttpException(500, 'Erreur lors du téléchargement du fichier'));
       });
+      download.stream.pipe(res);
     } catch (error) {
       next(error);
     }

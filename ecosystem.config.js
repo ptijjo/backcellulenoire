@@ -1,24 +1,24 @@
 /**
  * @description pm2 configuration file.
- * @example
+ * Stockage PDF local : une seule instance API (évite fichiers absents entre workers).
+ * Avec STORAGE_DRIVER=s3, vous pouvez remonter instances > 1.
  */
 module.exports = {
   apps: [
     {
-      name: 'prod', // pm2 start App name
+      name: 'prod',
       script: 'dist/server.js',
-      exec_mode: 'cluster', // 'cluster' or 'fork'
-      instance_var: 'INSTANCE_ID', // instance variable
-      instances: 2, // pm2 instance count
-      autorestart: true, // auto restart if process crash
-      watch: false, // files change automatic restart
-      ignore_watch: ['node_modules', 'logs'], // ignore files change
-      max_memory_restart: '1G', // restart if process use more than 1G memory
-      merge_logs: true, // if true, stdout and stderr will be merged and sent to pm2 log
-      output: './logs/access.log', // pm2 log file
-      error: './logs/error.log', // pm2 error log file
+      exec_mode: 'fork',
+      instance_var: 'INSTANCE_ID',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      ignore_watch: ['node_modules', 'logs'],
+      max_memory_restart: '1G',
+      merge_logs: true,
+      output: './logs/access.log',
+      error: './logs/error.log',
       env: {
-        // environment variable
         PORT: 8080,
         NODE_ENV: 'production',
       },
@@ -27,17 +27,17 @@ module.exports = {
       name: 'front',
       script: 'node_modules/.bin/next',
       args: 'start -p 5011',
-      exec_mode: 'cluster', // 'cluster' or 'fork'
+      exec_mode: 'cluster',
       cwd: '/var/www/vhosts/cellulenoire.fr/httpdocs',
-      instance_var: 'INSTANCE_ID', // instance variable
-      instances: 2, // pm2 instance count
-      autorestart: true, // auto restart if process crash
-      watch: false, // files change automatic restart
-      ignore_watch: ['node_modules', 'logs'], // ignore files change
-      max_memory_restart: '1G', // restart if process use more than 1G memory
-      merge_logs: true, // if true, stdout and stderr will be merged and sent to pm2 log
-      output: './logs/access.log', // pm2 log file
-      error: './logs/error.log', // pm2 error log file
+      instance_var: 'INSTANCE_ID',
+      instances: 2,
+      autorestart: true,
+      watch: false,
+      ignore_watch: ['node_modules', 'logs'],
+      max_memory_restart: '1G',
+      merge_logs: true,
+      output: './logs/access.log',
+      error: './logs/error.log',
       env_production: {
         NODE_ENV: 'production',
         PORT: 5011,
