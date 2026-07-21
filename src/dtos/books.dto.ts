@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { CATEGORY } from '@prisma/client';
-import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsIn, IsNotEmpty, IsString } from 'class-validator';
 
 export class AddBookDto {
   @IsString()
@@ -10,7 +10,11 @@ export class AddBookDto {
   @IsString()
   @IsNotEmpty()
   public author: string;
-  static categorie: CATEGORY;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsIn(['histoire', 'religion', 'philosophie', 'spiritualite', 'jeunesse', 'sciences', 'langue', 'roman'])
+  public categoryName: CATEGORY;
 }
 
 export class UpdatebookDto {
